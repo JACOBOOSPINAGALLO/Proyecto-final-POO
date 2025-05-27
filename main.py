@@ -338,16 +338,23 @@ def obtener_entrada(mensaje, tipo=str, obligatorio=True):
 if __name__ == "__main__":
     inv = Inventario()
 
-    # — Inicio de sesión de empleado —
+    # — Inicio de sesión de empleado CON CONTRASEÑA —
     current = None
     while not current:
         print("\n--- Iniciar Sesión ---")
         eid = obtener_entrada("Tu ID de Empleado: ", int)
         user = inv.buscar_empleado_por_id(eid)
-        if user:
+        if not user:
+            print("ID inválido. Intenta de nuevo.")
+            continue
+
+        # Contraseña = <ID> + '420'
+        expected_pwd = f"{eid}420"
+        pwd = input("Contraseña: ").strip()
+        if pwd == expected_pwd:
             current = user
         else:
-            print("ID inválido. Intenta de nuevo.")
+            print("Contraseña incorrecta. Vuelve a intentarlo.")
 
     print(f"\nBienvenido, {current.nombre} {current.apellido} ({current.cargo})\n")
 
