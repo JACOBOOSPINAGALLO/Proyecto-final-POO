@@ -18,19 +18,21 @@ class Producto:
 
 
 class Empleado:
-    def __init__(self, id, nombre, apellido, cargo, salario):
+    def __init__(self, id, nombre, apellido, cargo, salario, password):
         self.__id = id
         self.nombre = nombre
         self.apellido = apellido
         self.cargo = cargo
         self.salario = salario
+        self.__password = password
 
     def __str__(self):
         return (
             f"ID: {self.__id} / "
             f"{self.nombre} {self.apellido} / "
             f"Cargo: {self.cargo} / "
-            f"Salario: {self.salario}"
+            f"Salario: {self.salario} / "
+            f"Contraseña: {self.__password}"
         )
 
     @property
@@ -77,7 +79,8 @@ class Inventario:
                     nombre TEXT NOT NULL,
                     apellido TEXT NOT NULL,
                     cargo TEXT NOT NULL,
-                    salario REAL NOT NULL
+                    salario REAL NOT NULL,
+                    password TEXT NOT NULL
                 )
             """
             )
@@ -187,12 +190,12 @@ class Inventario:
         return success
 
     # — CRUD de Empleados —
-    def agregar_empleado(self, nombre, apellido, cargo, salario, actor_id):
+    def agregar_empleado(self, nombre, password, apellido, cargo, salario, actor_id):
         with self._conect() as c:
             cur = c.cursor()
             cur.execute(
-                "INSERT INTO empleados (nombre, apellido, cargo, salario) VALUES (?, ?, ?, ?)",
-                (nombre, apellido, cargo, salario),
+                "INSERT INTO empleados (nombre, apellido, cargo, salario, password) VALUES (?, ?, ?, ?, ?)",
+                (nombre, apellido, cargo, salario, password),
             )
             c.commit()
             emp_id = cur.lastrowid
@@ -280,38 +283,40 @@ class Inventario:
 # MENÚ
 
 
+# Vista completa del inventario para el gerente
 def mostrar_menu_gerente():
     print(
         """
---- Menú de Inventario & Empleados ---
-1. Agregar Producto
-2. Ver Todos los Productos
-3. Buscar Producto por Nombre
-4. Actualizar Producto por ID
-5. Eliminar Producto por ID
-6. Agregar Empleado
-7. Ver Todos los Empleados
-8. Buscar Empleado por Nombre
-9. Actualizar Empleado por ID
-10. Eliminar Empleado por ID
-11. Ver Auditoría (Gerente)
-12. Salir
--------------------------------------
-"""
+    --- Menú de Inventario & Empleados ---
+    1. Agregar Producto
+    2. Ver Todos los Productos
+    3. Buscar Producto por Nombre
+    4. Actualizar Producto por ID
+    5. Eliminar Producto por ID
+    6. Agregar Empleado
+    7. Ver Todos los Empleados
+    8. Buscar Empleado por Nombre
+    9. Actualizar Empleado por ID
+    10. Eliminar Empleado por ID
+    11. Ver Auditoría (Gerente)
+    12. Salir
+    -------------------------------------
+    """
     )
 
 
+# Vista limitada para un empleado preservando la info-sec.
 def mostrar_menu_empleado():
     print(
         """
-    --- Menú de Empleado ---
+    ---------- Menú de Empleado ---------
     1. Ver Productos
     2. Buscar Producto por Nombre
     3. Ver Empleados    
     4. Buscar Empleado por Nombre
     5. Salir
     -------------------------------------
-  """
+    """
     )
 
 
@@ -360,7 +365,8 @@ if __name__ == "__main__":
 
     # — Bucle principal —
     while True:
-
+        # Si el cargo de quien inició sesión es distinto
+        # a gerente entonces mostrar menú de empleado
         if current.cargo.lower() != "gerente":
             mostrar_menu_empleado()
             opcion = input("Seleccione una opción: ").strip()
@@ -389,6 +395,7 @@ if __name__ == "__main__":
                 print("Opción inválida. Selecciona del 1 al 5.")
         else:
             # Gerente
+            # Si es gerente, mostrar su respectivo menú
             mostrar_menu_gerente()
             opcion = input("Seleccione una opción: ").strip()
             if opcion == "1":
@@ -424,7 +431,9 @@ if __name__ == "__main__":
                 ap = obtener_entrada("Apellido: ")
                 ca = obtener_entrada("Cargo: ")
                 sa = obtener_entrada("Salario: ", float)
-                inv.agregar_empleado(n, ap, ca, sa, actor_id=current.id)
+                pw = obtener_entrada("Contraseña: ", str)
+
+                inv.agregar_empleado(n, pw, ap, ca, sa, actor_id=current.id)
 
             elif opcion == "7":
                 for emp in inv.obtener_empleados():
